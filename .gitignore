@@ -1,6 +1,7 @@
 ### Folders ###
 run
 .ipynb_checkpoints
+__pycache__
 
 
 ### Files ###
