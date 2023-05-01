@@ -19,9 +19,8 @@ class MTNAS(RegularizedEvolution):
     
     def default_tiers(self):
         zc = ZeroCost(method_type='jacov')
-        zc.num_imgs_or_batches = 10
         train_loader, _, _, _, _ = utils.get_train_val_loaders(self.config, mode="train")
-        tier1 = lambda arch: zc.query(arch, dataloader=train_loader)
+        tier1 = lambda arch: 100*np.exp(0.001*zc.query(arch, dataloader=train_loader))
         
         # TODO: add tier 2
         tier2 = lambda arch: None
