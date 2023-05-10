@@ -5,7 +5,7 @@ search_space: nasbench201
 train_portion: 0.7
 eval_only: false
 resume: false
-seeds: range(30)
+seeds: range(80)
 search:
   batch_size: 32
   epochs: 300

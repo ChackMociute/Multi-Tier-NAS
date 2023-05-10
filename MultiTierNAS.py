@@ -23,9 +23,9 @@ class MTNAS(RegularizedEvolution):
     
     def default_tiers(self, dataloader):
         zc = ZeroCost(method_type='jacov')
-        tier1 = lambda arch: 100*np.exp(0.001*zc.query(arch, dataloader=dataloader))
+        tier1 = lambda arch: 100*np.exp(0.01*zc.query(arch, dataloader=dataloader))
         
-        tse = TrainingSpeedEstimate(dataloader, budget=self.config.search.budget, dataset=self.dataset, dataset_api=self.dataset_api)
+        tse = TrainingSpeedEstimate(dataloader, self.dataset_api, self.config)
         tier2 = lambda arch: tse.evaluate(arch)
 
         tier3 = lambda arch: arch.query(
@@ -43,7 +43,11 @@ class MTNAS(RegularizedEvolution):
             model.accuracy = self.evaluator(model.arch)
 
             self.population.append(model)
-            self._update_history(model)
+            self.averages = [{'tier': np.mean([x.accuracy for x in self.population]),
+                              'true': np.mean([x.arch.query(self.performance_metric,
+                                                            self.dataset, dataset_api=self.dataset_api)
+                                                            for x in self.population])}]
+            if self.evaluator == self.tiers[-1]: self._update_history(model)
             log_every_n_seconds(
                 logging.INFO, "Population size {}".format(len(self.population))
             )
@@ -51,9 +55,10 @@ class MTNAS(RegularizedEvolution):
     def new_epoch(self, epoch: int):
         if epoch > 0 and epoch % int(self.epochs/len(self.tiers)) == 0:
             self.evaluator_ind += 1
-            self.evaluator = self.tiers[self.evaluator_ind]
-            for model in self.population:
-                model.accuracy = self.evaluator(model.arch)
+            try: self.evaluator = self.tiers[self.evaluator_ind]
+            except IndexError: self.evaluator = self.tiers[-1]
+            # for model in self.population:
+            #     model.accuracy = self.evaluator(model.arch)
 
         sample = []
         while len(sample) < self.sample_size:
@@ -68,4 +73,13 @@ class MTNAS(RegularizedEvolution):
         child.accuracy = self.evaluator(child.arch)
 
         self.population.append(child)
-        self._update_history(child)
+        if self.evaluator == self.tiers[-1]: self._update_history(child)
+
+        self.averages.append({'tier': np.mean([x.accuracy for x in self.population]),
+                              'true': np.mean([x.arch.query(self.performance_metric,
+                                                            self.dataset, dataset_api=self.dataset_api)
+                                                            for x in self.population])})
+    
+    def get_final_architecture(self):
+        try: return max(self.history, key=lambda x: x.accuracy).arch
+        except ValueError: return max(self.population, key=lambda x: x.accuracy).arch

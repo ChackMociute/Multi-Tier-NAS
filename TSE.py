@@ -8,12 +8,11 @@ class TrainingSpeedEstimate():
         'ImageNet16-120': 'ImageNet16-120'
     }
     
-    def __init__(self, dataloader, budget=10, dataset=None, dataset_api=None, query_nb201=False):
+    def __init__(self, dataloader, dataset_api, config):
         self.dataloader = dataloader
-        self.budget = budget
-        self.query_nb201 = query_nb201
-        self.dataset = dataset
         self.dataset_api = dataset_api
+        self.budget = config.search.budget
+        self.dataset = config.dataset
     
     def evaluate(self, arch):
         query_data = arch.query(Metric.RAW, self.dataset, dataset_api=self.dataset_api)
