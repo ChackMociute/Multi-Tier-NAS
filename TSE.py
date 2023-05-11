@@ -13,7 +13,10 @@ class TrainingSpeedEstimate():
         self.dataset_api = dataset_api
         self.budget = config.search.budget
         self.dataset = config.dataset
-    
-    def evaluate(self, arch):
+        
+    def losses(self, arch):
         query_data = arch.query(Metric.RAW, self.dataset, dataset_api=self.dataset_api)
-        return 100*np.exp(-1e-2*sum([l for l in query_data[self.QUERY_TRANSLATIONS[self.dataset]]['train_losses'][:self.budget]]))
+        return [l for l in query_data[self.QUERY_TRANSLATIONS[self.dataset]]['train_losses'][:self.budget]]
+    
+    def evaluate(self, arch, E=1, a=3e-1):
+        return 100*np.exp(-a*sum(self.losses(arch)[-E:]))
