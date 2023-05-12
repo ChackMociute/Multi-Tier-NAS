@@ -1,0 +1,20 @@
+data: d:\desktop\(3)thesis\naslib\naslib/data
+save: D:\Desktop\(3)Thesis\Multi-Tier-NAS/run/nasbench201/cifar10/darts/99
+dataset: cifar10 #ImageNet16-120
+search_space: nasbench201
+train_portion: 0.7
+eval_only: false
+resume: false
+seeds: range(80)
+search:
+  batch_size: 32
+  epochs: 300
+  population_size: 50
+  sample_size: 15
+  checkpoint_freq: 5
+  seed: 100
+  fidelity: -1
+  budget: 10
+  cutout: false
+  cutout_length: 16
+  cutout_prob: 1.0
