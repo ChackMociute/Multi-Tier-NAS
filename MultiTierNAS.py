@@ -3,9 +3,8 @@ import logging
 import numpy as np
 from naslib import utils
 from naslib.optimizers import RegularizedEvolution
-from naslib.predictors import ZeroCost
 from naslib.utils.log import log_every_n_seconds
-from TSE import TrainingSpeedEstimate
+from tiers import JaCovTier, TrainingSpeedEstimateTier, QueryFullTrainingTier
 
 logger = logging.getLogger(__name__)
 
@@ -16,25 +15,19 @@ class MultiTierNAS(RegularizedEvolution):
         if save_averages: self.averages = []
         self.reevaluate = reevaluate
     
-    # Call only after adapting search space
-    def set_default_tiers(self, dataloader=None):
-        # TODO: add customizable tiers
-        if dataloader is None: dataloader = utils.get_train_val_loaders(self.config, mode="train")[0]
-        self.tiers = self.default_tiers(dataloader)
+    def set_tiers(self, tiers):
+        self.tiers = tiers
         self.evaluator_ind = 0
         self.evaluator = self.tiers[self.evaluator_ind]
-    
-    def default_tiers(self, dataloader):
-        zc = ZeroCost(method_type='jacov')
-        tier1 = lambda arch: 100*np.exp(0.01*zc.query(arch, dataloader=dataloader))
-        
-        tse = TrainingSpeedEstimate(dataloader, self.dataset_api, self.config)
-        tier2 = lambda arch: tse.evaluate(arch)
 
-        tier3 = lambda arch: arch.query(
-            self.performance_metric, self.dataset, dataset_api=self.dataset_api
-            )
-        return [tier1, tier2, tier3]
+    # Call only after adapting search space
+    def set_default_tiers(self, dataloader=None):
+        if dataloader is None: dataloader = utils.get_train_val_loaders(self.config, mode="train")[0]
+        self.tiers = [JaCovTier(dataloader),
+                      TrainingSpeedEstimateTier(self.dataset_api, self.config),
+                      QueryFullTrainingTier(self.dataset, self.dataset_api)]
+        self.evaluator_ind = 0
+        self.evaluator = self.tiers[self.evaluator_ind]
     
     def before_training(self):
         logger.info("Start sampling architectures to fill the population")
@@ -43,7 +36,6 @@ class MultiTierNAS(RegularizedEvolution):
             model = torch.nn.Module().to('cuda')
             model.arch = self.search_space.clone()
             model.arch.sample_random_architecture(dataset_api=self.dataset_api)
-            if self.evaluator == self.tiers[0]: model.arch.parse()
             model.accuracy = self.evaluator(model.arch)
 
             self.population.append(model)
@@ -65,6 +57,7 @@ class MultiTierNAS(RegularizedEvolution):
             if self.reevaluate:
                 for model in self.population:
                     model.accuracy = self.evaluator(model.arch)
+                    if self.evaluator == self.tiers[-1]: self._update_history(model)
 
         sample = np.random.choice(list(self.population), self.sample_size)
         parent = max(sample, key=lambda x: x.accuracy)
@@ -72,7 +65,6 @@ class MultiTierNAS(RegularizedEvolution):
         child = torch.nn.Module()
         child.arch = self.search_space.clone()
         child.arch.mutate(parent.arch, dataset_api=self.dataset_api)
-        if self.evaluator == self.tiers[0]: child.arch.parse()
         child.accuracy = self.evaluator(child.arch)
 
         self.population.append(child)
