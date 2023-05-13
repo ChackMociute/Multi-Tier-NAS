@@ -18,11 +18,12 @@ class Tier(ABC):
 
 
 class JaCovTier(Tier, ZeroCost):
-    def __init__(self, dataloader, dropoff=1e-2, epochs=None):
+    def __init__(self, dataloader, dropoff=1e-2, batches=1, epochs=None):
         ZeroCost.__init__(self, method_type='jacov')
         Tier.__init__(self, epochs=epochs)
         self.dataloader = dataloader
         self.dropoff = dropoff
+        self.num_imgs_or_batches = batches
     
     def evaluate(self, arch):
         if torch.cuda.is_available(): arch.parse()

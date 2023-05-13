@@ -33,7 +33,7 @@ class MultiTierNAS(RegularizedEvolution):
         logger.info("Start sampling architectures to fill the population")
 
         for _ in range(self.population_size):
-            model = torch.nn.Module().to('cuda')
+            model = torch.nn.Module()
             model.arch = self.search_space.clone()
             model.arch.sample_random_architecture(dataset_api=self.dataset_api)
             model.accuracy = self.evaluator(model.arch)
