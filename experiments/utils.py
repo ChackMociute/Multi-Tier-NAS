@@ -3,11 +3,15 @@ import pandas as pd
 from tqdm import tqdm
 from naslib import utils
 from naslib.defaults.trainer import Trainer
-from MultiTierNAS import MultiTierNAS
-from RegularizedEvolution import RegularizedEvolution
 from naslib.optimizers import RandomSearch
 from naslib.search_spaces import NasBench101SearchSpace, NasBench201SearchSpace, NasBench301SearchSpace
 from naslib.search_spaces.core import Metric
+
+import sys
+sys.path.append('../')
+from MultiTierNAS import MultiTierNAS
+from RegularizedEvolution import RegularizedEvolution
+from tiers import JaCovTier, TrainingSpeedEstimateTier, QueryFullTrainingTier
 
 
 def get_search_space(search_space):

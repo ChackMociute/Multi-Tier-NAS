@@ -2,18 +2,19 @@ import os
 import json
 from utils import *
 from naslib import utils
-from tiers import JaCovTier, TrainingSpeedEstimateTier, QueryFullTrainingTier
 from warnings import filterwarnings
 
 filterwarnings('ignore')
 
-name = 'tier2sum'
+name = 'default'
 
 config = utils.load_config(os.path.join(os.getcwd(), 'config.yaml'))
+config.dataset = 'cifar100'
+
 train_loader = utils.get_train_val_loaders(config, mode="train")[0]
 dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
-tiers = [JaCovTier(train_loader),
-         TrainingSpeedEstimateTier(dataset_api, config, E=0, dropoff=2e-2),
+tiers = [JaCovTier(train_loader, dropoff=2e-3, batches=12),
+         TrainingSpeedEstimateTier(dataset_api, config),
          QueryFullTrainingTier(config.dataset, dataset_api)]
 
 results, averages = experiment(config, save_averages=True, tiers=tiers)
