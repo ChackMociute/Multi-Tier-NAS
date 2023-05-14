@@ -9,8 +9,7 @@ from naslib.search_spaces.core import Metric
 
 import sys
 sys.path.append('../')
-from MultiTierNAS import MultiTierNAS
-from RegularizedEvolution import RegularizedEvolution
+from optimizers_ import MultiTierNAS, RegularizedEvolution
 from tiers import JaCovTier, TrainingSpeedEstimateTier, QueryFullTrainingTier
 
 
@@ -20,7 +19,7 @@ def get_search_space(search_space):
     elif search_space == 'nasbench301': return NasBench301SearchSpace()
 
 def experiment(config, save_averages=False, reevaluate=False, tiers=None):
-    config.data = os.path.join(os.path.dirname(os.getcwd()), 'naslib/naslib/data')
+    config.data = os.path.join(os.path.dirname(os.path.dirname(os.getcwd())), 'naslib/naslib/data')
     search_space = get_search_space(config.search_space)
     dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
     if tiers is None: train_loader = utils.get_train_val_loaders(config, mode="train")[0]
