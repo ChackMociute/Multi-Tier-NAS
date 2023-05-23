@@ -37,6 +37,10 @@ class MultiTierNAS(RegularizedEvolution):
                               "the total number of epochs. Final tier will " +
                               "be used to evaluate more than specified.")
             self.epochs_per_tier[-1] = self.epochs
+        
+        for tier in self.tiers:
+            if tier.epochs is None:
+                tier.epochs = int(epochs_per_undesignated_tiers)
 
     def set_tiers(self, tiers):
         self.tiers = tiers

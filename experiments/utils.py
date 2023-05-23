@@ -41,7 +41,8 @@ def experiment(config, save_averages=False, reevaluate=False, tiers=None):
         trainer_mtnas.name = 'mtnas'
         
         # Reduce number of epochs to represent equivalent running time
-        config.search.epochs = epochs // len(mtnas.tiers) + 200 // config.search.budget
+        config.search.epochs = mtnas.tiers[-1].epochs + config.search.budget * mtnas.tiers[1].epochs // 50
+        if reevaluate and tiers is not None: config.search.epochs *= 2
         re = RegularizedEvolution(config, save_averages=save_averages)
         re.adapt_search_space(search_space, dataset_api=dataset_api)
         trainer_re = Trainer(re, config)
@@ -61,7 +62,9 @@ def experiment(config, save_averages=False, reevaluate=False, tiers=None):
     return results
 
 def save_averages(averages, path):
-    df = pd.DataFrame.from_dict({(key, i, k): [x[k] for x in val if k in x.keys()] for i, res in enumerate(averages) for key, val in res.items() for k in ['estm', 'true']}, orient='index').T
+    df = pd.DataFrame.from_dict({(key, i, k): [x[k] for x in val if k in x.keys()]
+                                 for i, res in enumerate(averages) for key, val in res.items()
+                                 for k in ['estm', 'true']}, orient='index').T
     df.columns = pd.MultiIndex.from_tuples(df.columns).rename(['algorithm', 'seed'], level=[0, 1])
     df.index.rename('epoch', inplace=True)
     with open(path, 'w') as f:
