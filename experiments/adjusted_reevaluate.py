@@ -6,7 +6,7 @@ from warnings import filterwarnings
 
 filterwarnings('ignore')
 
-name = 'reevaluate'
+name = 'adj_reevaluate'
 
 config = utils.load_config(os.path.join(os.getcwd(), 'config.yaml'))
 config.search.epochs = 200
