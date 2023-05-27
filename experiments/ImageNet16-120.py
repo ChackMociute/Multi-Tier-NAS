@@ -13,8 +13,8 @@ config.dataset = 'ImageNet16-120'
 
 train_loader = utils.get_train_val_loaders(config, mode="train")[0]
 dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
-tiers = [JaCovTier(train_loader, dropoff=3e-3, batches=10),
-         TrainingSpeedEstimateTier(dataset_api, config, dropoff=5e-1),
+tiers = [JaCovTier(train_loader, batches=12, dropoff=1.5e-3),
+         TrainingSpeedEstimateTier(dataset_api, config, dropoff=4e-1),
          QueryFullTrainingTier(config.dataset, dataset_api)]
 
 results, averages = experiment(config, save_averages=True, tiers=tiers)
