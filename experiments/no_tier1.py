@@ -9,10 +9,12 @@ filterwarnings('ignore')
 name = 'tier1absent'
 
 config = utils.load_config(os.path.join(os.getcwd(), 'config.yaml'))
-config.search.epochs = 200
+config.search.epochs = 150
 dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
-tiers = [TrainingSpeedEstimateTier(dataset_api, config),
+tiers = [TrainingSpeedEstimateTier(dataset_api, config, epochs=50),
          QueryFullTrainingTier(config.dataset, dataset_api)]
+tiers[0].full_training_epcohs = 20
+tiers[1].full_training_epcohs = 100
 
 results, averages = experiment(config, save_averages=True, tiers=tiers)
 
