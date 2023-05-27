@@ -41,7 +41,7 @@ def experiment(config, save_averages=False, reevaluate=False, tiers=None):
         trainer_mtnas.name = 'mtnas'
         
         # Reduce number of epochs to represent equivalent running time
-        config.search.epochs = mtnas.tiers[-1].epochs + config.search.budget * mtnas.tiers[1].epochs // 50
+        config.search.epochs = sum([tier.full_training_epcohs for tier in mtnas.tiers])
         if reevaluate and tiers is not None: config.search.epochs *= 2
         re = RegularizedEvolution(config, save_averages=save_averages)
         re.adapt_search_space(search_space, dataset_api=dataset_api)

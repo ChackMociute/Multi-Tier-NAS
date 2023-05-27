@@ -6,14 +6,14 @@ from warnings import filterwarnings
 
 filterwarnings('ignore')
 
-name = 'reevaluate'
+name = 'adj_reevaluate'
 
 config = utils.load_config(os.path.join(os.getcwd(), 'config.yaml'))
 config.search.epochs = 200
 train_loader = utils.get_train_val_loaders(config, mode="train")[0]
 dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
 tiers = [JaCovTier(train_loader, epochs=100),
-         TrainingSpeedEstimateTier(dataset_api, config, dropoff=1.7e-1),
+         TrainingSpeedEstimateTier(dataset_api, config),
          QueryFullTrainingTier(config.dataset, dataset_api)]
 
 results, averages = experiment(config, save_averages=True, reevaluate=True, tiers=tiers)

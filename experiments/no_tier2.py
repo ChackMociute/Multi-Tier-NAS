@@ -12,8 +12,10 @@ config = utils.load_config(os.path.join(os.getcwd(), 'config.yaml'))
 config.search.epochs = 200
 train_loader = utils.get_train_val_loaders(config, mode="train")[0]
 dataset_api = utils.get_dataset_api(search_space=config.search_space, dataset=config.dataset)
-tiers = [JaCovTier(train_loader),
+tiers = [JaCovTier(train_loader, dropoff=6e-3),
          QueryFullTrainingTier(config.dataset, dataset_api)]
+tiers[0].full_training_epcohs = 0
+tiers[1].full_training_epcohs = 100
 
 results, averages = experiment(config, save_averages=True, tiers=tiers)
 
