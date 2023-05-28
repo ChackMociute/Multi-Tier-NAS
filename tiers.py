@@ -6,10 +6,12 @@ from naslib.search_spaces.core import Metric
 
 
 class Tier(ABC):
-    def __init__(self, epochs=None, range=[0, 100], scale=1):
+    def __init__(self, epochs=None, range=[0, 100], scale=1, multiplier=0):
         self.epochs = epochs
         self.range = range
         self.scale = scale
+        # Multiplier only useful for trials for comparing with RE
+        self.epoch_multiplier = multiplier
     
     def __call__(self, arch):
         return self.evaluate(arch)
@@ -42,8 +44,8 @@ class TrainingSpeedEstimateTier(Tier):
         'ImageNet16-120': 'ImageNet16-120'
     }
     
-    def __init__(self, dataset_api, config, dropoff=3e-1, E=1, dataloader=None, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(self, dataset_api, config, dropoff=3e-1, E=1, dataloader=None, multiplier=0.2, **kwargs):
+        super().__init__(**kwargs, multiplier=multiplier)
         self.dataset_api = dataset_api
         self.budget = config.search.budget if hasattr(config.search, 'budget') else 10
         self.dataset = config.dataset
@@ -59,9 +61,8 @@ class TrainingSpeedEstimateTier(Tier):
         return self.normalize(np.exp(-self.dropoff*sum(self.losses(arch)[-self.E:])))
 
 class QueryFullTrainingTier(Tier):
-    def __init__(self, dataset, dataset_api, performance_metric=Metric.VAL_ACCURACY, scale=0.01, **kwargs):
-        kwargs['scale'] = scale
-        super().__init__(**kwargs)
+    def __init__(self, dataset, dataset_api, performance_metric=Metric.VAL_ACCURACY, scale=0.01, multiplier=1, **kwargs):
+        super().__init__(**kwargs, scale=scale, multiplier=multiplier)
         self.dataset = dataset
         dataset_api=self.dataset_api = dataset_api
         self.performance_metric = performance_metric
