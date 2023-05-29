@@ -16,7 +16,7 @@ tiers = [JaCovTier(train_loader, epochs=100),
          TrainingSpeedEstimateTier(dataset_api, config, epochs=50),
          QueryFullTrainingTier(config.dataset, dataset_api, epochs=110)]
 
-results, averages = experiment(config, save_averages=True, reevaluate=True, tiers=tiers)
+results, averages = experiment(config, save_averages=True, tiers=tiers)
 
 path = os.path.join(os.getcwd(), 'results', config.search_space, config.dataset, name)
 if not os.path.exists(path): os.makedirs(path)
